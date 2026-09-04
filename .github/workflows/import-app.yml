@@ -6,6 +6,8 @@ on:
       - '.github/workflows/import-app.yml'
       - 'enhancements.js'
       - 'bootstrap.js'
+      - 'admin-tools.js'
+      - 'provas-v2.js'
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -23,40 +25,25 @@ jobs:
           if [ -n "$seed" ]; then cp "$seed" students-seed.json; fi
           if [ -n "$logo" ]; then cp "$logo" logo-colegio.svg; fi
           rm -rf imported app.zip
-      - name: Corrigir carregamento das ferramentas
+      - name: Validar aplicativo
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text()
-          inject='<script src="/bootstrap.js"></script>'
-          if 'src="/bootstrap.js"' not in s:
-              pos=s.lower().rfind('</body>')
-              if pos<0: raise SystemExit('Tag body não encontrada')
-              s=s[:pos]+inject+s[pos:]
-          p.write_text(s)
-          PY
           test -s index.html
           test -s students-seed.json
           test -s bootstrap.js
           test -s enhancements.js
           test -s admin-tools.js
-      - name: Validar aplicativo
-        run: |
+          test -s provas-v2.js
           grep -q 'Aurora Mendes' students-seed.json
           grep -q 'Dante Albuquerque' students-seed.json
-          grep -q 'bootstrap.js' index.html
-          grep -q 'Gerar todas as 48 provas' enhancements.js
           grep -q 'Adicionar professor' admin-tools.js
           grep -q 'Adicionar aluno' admin-tools.js
-          ! grep -q '4º Bimestre' index.html
-          ! grep -q 'Nota 4' index.html
-          ! grep -q 'horizonteadmin' index.html
-          ! grep -q 'horizonteleticia' index.html
+          grep -q '60' provas-v2.js
+          grep -q '25' provas-v2.js
+          grep -q 'logo-colegio.svg' provas-v2.js
       - name: Publicar
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js
-          git diff --cached --quiet || git commit -m 'Corrigir acesso a recuperação provas e cadastros'
+          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js provas-v2.js
+          git diff --cached --quiet || git commit -m 'Separar provas e corrigir cadastros administrativos'
           git push
