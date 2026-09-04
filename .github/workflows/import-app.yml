@@ -38,6 +38,7 @@ jobs:
           old="function seedAcademic(){let d=H();if(!d||d.students.length!==150)return;d.stateVersion=2;"
           new="function seedAcademic(){let d=H();if(!d||d.students.length!==150)return;if(d.stateVersion!==2){d.students.forEach(s=>{s.grades={};s.recovery={};});}d.stateVersion=2;"
           if old in es: es=es.replace(old,new)
+          es=es.replace('seedAcademic();setupFilters();renderRecovery();showList();','seedAcademic();setupFilters();renderRecovery();showList();window.save?.(true);')
           e.write_text(es)
           PY
           test -s index.html
@@ -49,7 +50,7 @@ jobs:
           grep -q 'enhancements.js' index.html
           grep -q 'window.__horizonte' index.html
           grep -q 'Gerar todas as 48 provas' enhancements.js
-          grep -q 'Recuperação' enhancements.js
+          grep -q 'window.save?.(true)' enhancements.js
           ! grep -q '4º Bimestre' index.html
           ! grep -q 'Nota 4' index.html
           ! grep -q 'horizonteadmin' index.html
@@ -59,5 +60,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html students-seed.json logo-colegio.svg enhancements.js
-          git diff --cached --quiet || git commit -m 'Publicar recuperação provas e cadastros'
+          git diff --cached --quiet || git commit -m 'Persistir dados iniciais no D1'
           git push
