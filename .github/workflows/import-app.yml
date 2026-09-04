@@ -38,7 +38,18 @@ jobs:
           old="function seedAcademic(){let d=H();if(!d||d.students.length!==150)return;d.stateVersion=2;"
           new="function seedAcademic(){let d=H();if(!d||d.students.length!==150)return;if(d.stateVersion!==2){d.students.forEach(s=>{s.grades={};s.recovery={};});}d.stateVersion=2;"
           if old in es: es=es.replace(old,new)
-          es=es.replace('seedAcademic();setupFilters();renderRecovery();showList();','seedAcademic();setupFilters();renderRecovery();showList();window.save?.(true);')
+          es=es.replace('seedAcademic();setupFilters();renderRecovery();showList();','seedAcademic();setupFilters();renderRecovery();showList();window.save?.(true);addAdminTools();')
+          admin='''
+  function addAdminTools(){
+    let d=H(); if(!d||window.__hAdmin)return;
+    let page=document.getElementById('admin'); if(!page)return;
+    let box=document.createElement('div'); box.className='panel'; box.style.marginTop='15px'; box.innerHTML='<div class="ph"><b>Cadastros</b><span class="muted">Somente administrador</span></div><div class="pad actions"><button class="gold" id="addTeacherBtn">+ Adicionar professor</button><button class="btn" id="addStudentBtn">+ Adicionar aluno</button></div>';
+    page.appendChild(box); window.__hAdmin=true;
+    document.getElementById('addTeacherBtn').onclick=async()=>{let name=prompt('Nome do professor:');if(!name)return;let user=prompt('Usuário de login:');if(!user)return;let pass=prompt('Senha:');if(!pass)return;try{let r=await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({name,user,pass})}),x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Não foi possível criar o professor.');d.users??=[];d.users.push({name,user:user.toLowerCase(),role:'professor'});await window.save();window.toast?.('Professor criado com login.');renderAdmin()}catch(e){alert(e.message)}};
+    document.getElementById('addStudentBtn').onclick=async()=>{let name=prompt('Nome do aluno:');if(!name)return;let id=prompt('Matrícula:');if(!id)return;if(d.students.some(s=>s.id===id))return alert('Matrícula já cadastrada.');let labels=d.classes.map(c=>c.id+' - '+c.name).join('\n');let pick=prompt('Digite a turma:\n'+labels,'1A');let c=d.classes.find(x=>x.id===pick);if(!c)return alert('Turma inválida.');d.students.push({id,name,unit:c.unit,class:c.id,grades:{},attendance:{},recovery:{}});await window.save();window.toast?.('Aluno adicionado com sucesso.');renderAdmin();window.renderAll?.()};
+  }
+'''
+          if 'function addAdminTools()' not in es: es=es.replace('  function patch(){',admin+'  function patch(){')
           e.write_text(es)
           PY
           test -s index.html
@@ -50,7 +61,8 @@ jobs:
           grep -q 'enhancements.js' index.html
           grep -q 'window.__horizonte' index.html
           grep -q 'Gerar todas as 48 provas' enhancements.js
-          grep -q 'window.save?.(true)' enhancements.js
+          grep -q 'Adicionar professor' enhancements.js
+          grep -q 'Adicionar aluno' enhancements.js
           ! grep -q '4º Bimestre' index.html
           ! grep -q 'Nota 4' index.html
           ! grep -q 'horizonteadmin' index.html
@@ -60,5 +72,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html students-seed.json logo-colegio.svg enhancements.js
-          git diff --cached --quiet || git commit -m 'Persistir dados iniciais no D1'
+          git diff --cached --quiet || git commit -m 'Adicionar cadastro de professores e alunos'
           git push
