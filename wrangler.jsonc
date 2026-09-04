@@ -3,6 +3,13 @@
   "name": "sistemadenotascolegiohorizonte",
   "compatibility_date": "2026-09-04",
   "main": "worker.js",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "horizonte-db",
+      "database_id": "12478dd8-9f46-481e-90dd-8455fdf3ee6d"
+    }
+  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
