@@ -1,0 +1,25 @@
+name: Publicar ferramentas de cadastro
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'admin-tools.js'
+      - '.github/workflows/admin-tools.yml'
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Adicionar ferramentas ao aplicativo
+        run: |
+          python3 -c "from pathlib import Path; p=Path('index.html'); s=p.read_text(); marker='</body></html>'; s=s.replace(marker,'<script src=\"/admin-tools.js\"></script></body></html>') if '/admin-tools.js' not in s else s; p.write_text(s)"
+          grep -q 'admin-tools.js' index.html
+      - name: Publicar
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Publicar ferramentas de cadastro'
+          git push
