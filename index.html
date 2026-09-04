@@ -1,5 +1,213 @@
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sistema de Notas | Colégio Horizonte</title></head>
-<body><div id="app">Carregando Sistema de Notas...</div><script>document.getElementById('app').innerHTML='<p>O sistema está sendo publicado. Atualize a página em instantes.</p>';</script></body>
-</html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sistema de Notas | Colégio Horizonte</title>
+<style>
+:root{--navy:#09284b;--navy2:#123f73;--gold:#c89a3d;--gold2:#e5c66f;--bg:#f4f6fa;--card:#fff;--text:#172235;--muted:#718096;--line:#e3e8ef;--green:#16803c;--amber:#a16207;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#173f6d,#071a31 70%)}
+.login-card{width:min(440px,100%);background:#fff;border-radius:22px;padding:34px;box-shadow:0 25px 80px #0005;text-align:center}
+.login-card img{width:250px;max-width:90%;height:150px;object-fit:contain;background:#fff;border-radius:12px}.login-card h1{margin:15px 0 5px;color:var(--navy);font-size:25px}.login-card p{color:var(--muted)}
+.role-tabs{display:flex;gap:7px;background:#eef2f7;padding:5px;border-radius:12px;margin:20px 0}.role-tabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:8px;color:#607087}.role-tabs button.active{background:#fff;color:var(--navy);font-weight:800;box-shadow:0 2px 8px #17375e14}
+.field{display:flex;flex-direction:column;text-align:left;gap:6px;margin:12px 0}.field label{font-size:13px;font-weight:700;color:#46566d}.field input,.field select{border:1px solid var(--line);padding:12px;border-radius:10px;outline:none;background:#fff}.field input:focus,.field select:focus{border-color:var(--gold)}
+.primary{width:100%;border:0;border-radius:11px;padding:13px;background:linear-gradient(135deg,var(--navy2),var(--navy));color:#fff;font-weight:800;margin-top:8px}.gold{background:var(--gold);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:800}.outline{background:#fff;border:1px solid var(--line);color:var(--navy);border-radius:10px;padding:9px 12px;font-weight:700}
+.hint{font-size:12px;color:var(--muted);margin-top:14px}
+.app{min-height:100vh}.top{height:76px;background:linear-gradient(135deg,var(--navy),#061a31);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 25px;box-shadow:0 4px 18px #0b2a5030}.brand{display:flex;align-items:center;gap:12px}.brand img{width:52px;height:52px;object-fit:contain;background:#fff;border-radius:10px;padding:3px}.brand strong{display:block;font-size:17px}.brand small{opacity:.72}.userbox{display:flex;align-items:center;gap:10px}.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#ffffff18;border:1px solid #ffffff33;font-weight:800}
+.shell{display:flex;min-height:calc(100vh - 76px)}aside{width:245px;background:#fff;border-right:1px solid var(--line);padding:17px 13px}.nav{width:100%;text-align:left;border:0;background:transparent;padding:12px 14px;margin:3px 0;border-radius:10px;color:#516075;font-weight:700}.nav.active,.nav:hover{background:#edf3fa;color:var(--navy)}.nav.admin{margin-top:16px;border-top:1px solid var(--line);padding-top:20px}
+main{flex:1;padding:28px;max-width:1600px;width:100%;margin:auto}.page{display:none}.page.active{display:block}.head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px}.head h2{margin:0;color:var(--navy);font-size:26px}.head p{margin:5px 0 0;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}.filters select,.filters input{border:1px solid var(--line);padding:10px 12px;border-radius:9px;background:#fff}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 5px 18px #203c5d08}.card .label{color:var(--muted);font-size:13px}.card .num{font-size:27px;font-weight:900;color:var(--navy);margin-top:7px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 5px 18px #203c5d08}.panel-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:850px}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left}th{background:#fafbfd;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}td input{width:70px;padding:7px;border:1px solid var(--line);border-radius:8px;text-align:center}
+.badge{display:inline-block;padding:5px 9px;border-radius:99px;font-size:12px;font-weight:800}.ok{background:#dcfce7;color:var(--green)}.rec{background:#fef3c7;color:var(--amber)}.bad{background:#fee2e2;color:var(--red)}.neutral{background:#eef2f7;color:#64748b}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.tile{padding:18px;border:1px solid var(--line);border-radius:14px;background:#fff}.tile h3{margin:0 0 5px;color:var(--navy)}
+.modal{position:fixed;inset:0;background:#06152bcc;display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}.modalbox{background:#fff;width:min(650px,100%);border-radius:18px;padding:22px;max-height:90vh;overflow:auto}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
+.toast{position:fixed;right:20px;bottom:20px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:30}
+.danger{color:var(--red)}.small{font-size:12px}.empty{text-align:center;color:var(--muted);padding:35px}
+@media(max-width:900px){aside{display:none}.cards{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}main{padding:17px}.formgrid{grid-template-columns:1fr}.userbox span{display:none}}
+</style>
+</head>
+<body>
+
+<div id="login" class="login">
+  <div class="login-card">
+    <img src="logo-colegio.png" alt="Sistema de Notas">
+    <h1>Acesso ao Sistema</h1><p>Colégio Horizonte</p>
+    <div style="background:#f7f9fc;border:1px solid var(--line);padding:11px;border-radius:10px;margin:18px 0;color:var(--navy);font-weight:700">Acesso seguro ao sistema</div>
+    <div class="field"><label>Usuário</label><input id="loginUser" autocomplete="username" placeholder="Digite seu usuário"></div>
+    <div class="field"><label>Senha</label><input id="loginPass" type="password" autocomplete="current-password" placeholder="Digite sua senha"></div>
+    <button class="primary" onclick="doLogin()">Entrar</button>
+    
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+<header class="top">
+  <div class="brand"><img src="logo-colegio.png" alt="Sistema de Notas"><div><strong>Sistema de Notas</strong><small>Colégio Horizonte</small></div></div>
+  <div class="userbox"><div><strong id="userName">Usuário</strong><small id="userRole"></small></div><div class="avatar" id="avatar">P</div><button class="outline" onclick="logout()">Sair</button></div>
+</header>
+<div class="shell">
+<aside>
+  <button class="nav active" data-page="dashboard">📊 Dashboard</button>
+  <button class="nav" data-page="notas">📝 Lançar notas</button>
+  <button class="nav" data-page="alunos">👥 Alunos</button>
+  <button class="nav" data-page="turmas">🏫 Turmas</button>
+  <button class="nav" data-page="frequencia">📅 Frequência</button>
+  <button class="nav" data-page="boletins">📄 Boletins</button>
+  <button class="nav admin" data-page="admin">⚙️ Administração</button>
+</aside>
+
+<main>
+<section id="dashboard" class="page active">
+ <div class="head"><div><h2>Dashboard</h2><p>Visão geral do desempenho acadêmico.</p></div></div>
+ <div class="filters"><select id="dashUnit" onchange="renderDashboard()"></select><select id="dashClass" onchange="renderDashboard()"></select><select id="dashPeriod" onchange="renderDashboard()"><option value="1">1º Bimestre</option><option value="2">2º Bimestre</option><option value="3">3º Bimestre</option><option value="4">4º Bimestre</option></select></div>
+ <div class="cards"><div class="card"><div class="label">Alunos</div><div class="num" id="dStudents">0</div></div><div class="card"><div class="label">Média geral</div><div class="num" id="dAvg">—</div></div><div class="card"><div class="label">Aprovados</div><div class="num" id="dApproved">0</div></div><div class="card"><div class="label">Atenção</div><div class="num" id="dAttention">0</div></div></div>
+ <div class="grid2"><div class="panel"><div class="panel-head"><strong>Desempenho</strong><button class="gold" onclick="exportCSV()">Exportar</button></div><div class="table-wrap"><table><thead><tr><th>Aluno</th><th>Turma</th><th>Média</th><th>Situação</th></tr></thead><tbody id="dashTable"></tbody></table></div></div>
+ <div class="panel"><div class="panel-head"><strong>Resumo das 3 unidades</strong></div><div style="padding:18px" id="unitSummary"></div></div></div>
+</section>
+
+<section id="notas" class="page">
+ <div class="head"><div><h2>Lançamento de notas</h2><p>Notas por disciplina e bimestre.</p></div><button class="gold" onclick="saveGrades()">Salvar notas</button></div>
+ <div class="filters"><select id="gradeUnit" onchange="fillClassSelect('gradeClass',this.value);renderGrades()"></select><select id="gradeClass" onchange="renderGrades()"></select><select id="gradeSubject" onchange="renderGrades()"></select><select id="gradePeriod" onchange="renderGrades()"><option value="1">1º Bimestre</option><option value="2">2º Bimestre</option><option value="3">3º Bimestre</option><option value="4">4º Bimestre</option></select></div>
+ <div class="panel"><div class="table-wrap"><table><thead><tr><th>Aluno</th><th>Nota 1</th><th>Nota 2</th><th>Nota 3</th><th>Nota 4</th><th>Média</th><th>Situação</th></tr></thead><tbody id="gradeTable"></tbody></table></div></div>
+</section>
+
+<section id="alunos" class="page">
+ <div class="head"><div><h2>Alunos</h2><p>Cadastro e organização dos estudantes.</p></div><button class="gold" onclick="openStudent()">+ Novo aluno</button></div>
+ <div class="filters"><input id="studentSearch" placeholder="Pesquisar aluno..." oninput="renderStudents()"><select id="studentUnit" onchange="fillClassSelect('studentClass',this.value);renderStudents()"></select><select id="studentClass" onchange="renderStudents()"></select></div>
+ <div class="panel"><div class="table-wrap"><table><thead><tr><th>Nome</th><th>Unidade</th><th>Turma</th><th>Matrícula</th><th>Ação</th></tr></thead><tbody id="studentTable"></tbody></table></div></div>
+</section>
+
+<section id="turmas" class="page">
+ <div class="head"><div><h2>Turmas</h2><p>As três unidades do Colégio Horizonte.</p></div><button class="gold" onclick="openClass()">+ Nova turma</button></div>
+ <div class="grid3" id="classTiles"></div>
+</section>
+
+<section id="frequencia" class="page">
+ <div class="head"><div><h2>Frequência</h2><p>Registre presença e acompanhe o percentual.</p></div><button class="gold" onclick="saveAttendance()">Salvar frequência</button></div>
+ <div class="filters"><select id="attUnit" onchange="fillClassSelect('attClass',this.value);renderAttendance()"></select><select id="attClass" onchange="renderAttendance()"></select><input id="attDate" type="date" onchange="renderAttendance()"></div>
+ <div class="panel"><div class="table-wrap"><table><thead><tr><th>Aluno</th><th>Presente?</th><th>Faltas</th><th>Frequência</th></tr></thead><tbody id="attTable"></tbody></table></div></div>
+</section>
+
+<section id="boletins" class="page">
+ <div class="head"><div><h2>Boletins</h2><p>Gere um resumo individual do aluno.</p></div></div>
+ <div class="filters"><select id="reportUnit" onchange="fillClassSelect('reportClass',this.value)"></select><select id="reportClass" onchange="fillStudentSelect()"></select><select id="reportStudent" onchange="renderReport()"></select><button class="gold" onclick="printReport()">Imprimir / PDF</button></div>
+ <div id="reportBox" class="panel"></div>
+</section>
+
+<section id="admin" class="page">
+ <div class="head"><div><h2>Administração</h2><p>Controle de unidades, turmas, disciplinas e usuários.</p></div></div>
+ <div class="grid2">
+  <div class="panel"><div class="panel-head"><strong>3 unidades</strong><button class="gold" onclick="openUnit()">Editar</button></div><div id="unitAdmin" style="padding:10px"></div></div>
+  <div class="panel"><div class="panel-head"><strong>Professores</strong><button class="gold" onclick="openUser()">+ Novo professor</button></div><div id="userAdmin" style="padding:10px"></div></div>
+ </div>
+ <div class="panel" style="margin-top:16px"><div class="panel-head"><strong>Matérias / Disciplinas</strong><button class="gold" onclick="openSubject()">+ Nova matéria</button></div><div id="subjectAdmin" style="padding:10px"></div></div>
+ <div class="panel" style="margin-top:16px"><div class="panel-head"><strong>Conta administrativa principal</strong></div><div style="padding:18px"><strong>Usuário:</strong> joaopedroadmin<br><strong>Senha:</strong> horizonteadmin<br><span class="muted small">Use esta conta para criar professores, matérias e gerenciar o sistema.</span></div></div>
+ <div class="panel" style="margin-top:16px"><div class="panel-head"><strong>Backup</strong></div><div style="padding:18px"><button class="outline" onclick="downloadBackup()">Baixar backup dos dados</button> <button class="outline" onclick="resetDemo()">Restaurar dados de demonstração</button></div></div>
+</section>
+</main></div></div>
+
+<div id="modal" class="modal"><div class="modalbox" id="modalBox"></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const KEY='horizonte_profissional_v2';
+const demo={units:['Unidade Centro','Unidade Norte','Unidade Sul'],classes:[
+{id:'1A',name:'1º Ano A',unit:'Unidade Centro'},{id:'1B',name:'1º Ano B',unit:'Unidade Centro'},{id:'2A',name:'2º Ano A',unit:'Unidade Norte'},{id:'2B',name:'2º Ano B',unit:'Unidade Norte'},{id:'3A',name:'3º Ano A',unit:'Unidade Sul'}],
+subjects:['Português','Matemática','História','Geografia','Biologia','Física','Química','Inglês'],
+users:[{user:'professor',pass:'professor123',name:'Professor',role:'professor'},{user:'admin',pass:'admin123',name:'Administrador',role:'admin'}],
+students:[{id:'1001',name:'Ana Beatriz',unit:'Unidade Centro',class:'1A',grades:{},attendance:{}},{id:'1002',name:'Lucas Henrique',unit:'Unidade Centro',class:'1A',grades:{},attendance:{}},{id:'1003',name:'Mariana Silva',unit:'Unidade Centro',class:'1B',grades:{},attendance:{}},{id:'1004',name:'Gabriel Souza',unit:'Unidade Norte',class:'2A',grades:{},attendance:{}}]};
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||structuredClone(demo),currentUser=null;
+const ADMIN_USER='joaopedroadmin', ADMIN_PASS='horizonteadmin';
+function normalizeDB(){
+  db.units=['Unidade Centro','Unidade Norte','Unidade Sul'];
+  db.users=(db.users||[]).filter(u=>u.user!==ADMIN_USER && u.user!=='professor' && u.user!=='admin');
+  db.users.unshift({user:ADMIN_USER,pass:ADMIN_PASS,name:'João Pedro',role:'admin'});
+  db.subjects=[...(db.subjects||[])];
+  db.students=(db.students||[]).map(s=>({...s,grades:s.grades||{},attendance:s.attendance||{}}));
+  save();
+}
+normalizeDB();
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function avg(g){let a=['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null).map(Number);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+function sit(m){if(m==null)return ['Sem nota','neutral'];if(m>=7)return ['Aprovado','ok'];if(m>=5)return ['Recuperação','rec'];return ['Reprovado','bad']}
+function opts(arr,val=''){return arr.map(x=>`<option ${x===val?'selected':''}>${esc(x)}</option>`).join('')}
+function doLogin(){
+  let u=loginUser.value.trim(),p=loginPass.value;
+  let x=(u===ADMIN_USER && p===ADMIN_PASS)
+    ? {user:ADMIN_USER,pass:ADMIN_PASS,name:'João Pedro',role:'admin'}
+    : db.users.find(a=>a.user===u&&a.pass===p&&a.role==='professor');
+  if(!x)return alert('Usuário ou senha inválidos.');
+  currentUser=x;login.classList.add('hidden');app.classList.remove('hidden');
+  userName.textContent=x.name;userRole.textContent=x.role==='admin'?'Administrador':'Professor';
+  avatar.textContent=x.name[0].toUpperCase();
+  document.querySelector('[data-page="admin"]').classList.toggle('hidden',x.role!=='admin');
+  init();toast('Bem-vindo, '+x.name+'!');
+}
+function logout(){currentUser=null;app.classList.add('hidden');login.classList.remove('hidden');loginPass.value=''}
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{if(b.classList.contains('hidden'))return;document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.page).classList.add('active');renderAll()})
+function fillUnitSelect(id,all=false){let e=document.getElementById(id);if(!e)return;e.innerHTML=(all?'<option value="ALL">Todas as unidades</option>':'')+opts(db.units)}
+function fillClassSelect(id,unit,all=false){let e=document.getElementById(id);if(!e)return;let old=e.value,a=db.classes.filter(c=>unit==='ALL'||c.unit===unit);e.innerHTML=(all?'<option value="ALL">Todas as turmas</option>':'')+a.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');if(a.some(c=>c.id===old))e.value=old}
+function fillSubjectSelect(){gradeSubject.innerHTML=opts(db.subjects)}
+function fillStudentSelect(){let cl=reportClass.value;reportStudent.innerHTML=db.students.filter(s=>s.class===cl).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');renderReport()}
+function init(){fillUnitSelect('dashUnit',true);fillClassSelect('dashClass',dashUnit.value,true);fillUnitSelect('gradeUnit');fillClassSelect('gradeClass',gradeUnit.value);fillSubjectSelect();fillUnitSelect('studentUnit',true);fillClassSelect('studentClass',studentUnit.value,true);fillUnitSelect('attUnit');fillClassSelect('attClass',attUnit.value);fillUnitSelect('reportUnit');fillClassSelect('reportClass',reportUnit.value);fillStudentSelect();renderAll()}
+function renderAll(){renderDashboard();renderGrades();renderStudents();renderClasses();renderAttendance();renderReport();renderAdmin()}
+function renderDashboard(){let unit=dashUnit.value,cl=dashClass.value,p=dashPeriod.value,s=db.students.filter(x=>(unit==='ALL'||x.unit===unit)&&(cl==='ALL'||x.class===cl));let av=s.map(x=>avg(x.grades?.[p]?.['Geral']||{})).filter(x=>x!=null);dStudents.textContent=s.length;dAvg.textContent=av.length?(av.reduce((a,b)=>a+b,0)/av.length).toFixed(1):'—';dApproved.textContent=av.filter(x=>x>=7).length;dAttention.textContent=av.filter(x=>x<7).length;dashTable.innerHTML=s.length?s.map(x=>{let m=studentOverall(x,p),z=sit(m);return `<tr><td>${esc(x.name)}</td><td>${esc(className(x.class))}</td><td>${m==null?'—':m.toFixed(1)}</td><td>${m==null?'—':`<span class="badge ${z[1]}">${z[0]}</span>`}</td></tr>`}).join(''):'<tr><td colspan="4" class="empty">Nenhum aluno encontrado.</td></tr>';unitSummary.innerHTML=db.units.map(u=>{let q=db.students.filter(s=>s.unit===u),v=q.map(x=>studentOverall(x,p)).filter(x=>x!=null),m=v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';return `<div style="padding:9px 0;border-bottom:1px solid var(--line)"><strong>${esc(u)}</strong><span style="float:right">${q.length} alunos · média ${m}</span></div>`}).join('')}
+function studentOverall(s,p){let a=db.subjects.map(sub=>avg(s.grades?.[p]?.[sub]||{})).filter(x=>x!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+function className(id){return db.classes.find(c=>c.id===id)?.name||id}
+function renderGrades(){let cl=gradeClass.value,sub=gradeSubject.value,p=gradePeriod.value,s=db.students.filter(x=>x.class===cl);gradeTable.innerHTML=s.length?s.map(x=>{let g=x.grades?.[p]?.[sub]||{},m=avg(g),z=sit(m);return `<tr><td><strong>${esc(x.name)}</strong><br><small class="small">${esc(x.id)}</small></td>${['n1','n2','n3','n4'].map(k=>`<td><input class="gradeInput" data-id="${x.id}" data-k="${k}" type="number" min="0" max="10" step=".1" value="${g[k]??''}"></td>`).join('')}<td>${m==null?'—':m.toFixed(1)}</td><td>${m==null?'—':`<span class="badge ${z[1]}">${z[0]}</span>`}</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">Nenhum aluno nesta turma.</td></tr>'}
+function saveGrades(){let cl=gradeClass.value,sub=gradeSubject.value,p=gradePeriod.value;document.querySelectorAll('.gradeInput').forEach(i=>{let s=db.students.find(x=>x.id===i.dataset.id);s.grades[p]??={};s.grades[p][sub]??={};s.grades[p][sub][i.dataset.k]=i.value===''?'':Number(i.value)});save();renderAll();toast('Notas salvas com sucesso!')}
+function renderStudents(){let q=(studentSearch.value||'').toLowerCase(),u=studentUnit.value,c=studentClass.value,s=db.students.filter(x=>(u==='ALL'||x.unit===u)&&(c==='ALL'||x.class===c)&&x.name.toLowerCase().includes(q));studentTable.innerHTML=s.length?s.map(x=>`<tr><td><strong>${esc(x.name)}</strong></td><td>${esc(x.unit)}</td><td>${esc(className(x.class))}</td><td>${esc(x.id)}</td><td><button class="outline" onclick="deleteStudent('${x.id}')">Excluir</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Nenhum aluno encontrado.</td></tr>'}
+function renderClasses(){classTiles.innerHTML=db.units.map(u=>`<div class="tile"><h3>${esc(u)}</h3><div class="muted">${db.classes.filter(c=>c.unit===u).length} turmas · ${db.students.filter(s=>s.unit===u).length} alunos</div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">${db.classes.filter(c=>c.unit===u).map(c=>`<div style="padding:6px 0">${esc(c.name)} <span class="muted">(${db.students.filter(s=>s.class===c.id).length})</span></div>`).join('')}</div>`).join('')}
+function renderAttendance(){let cl=attClass.value,date=attDate.value||new Date().toISOString().slice(0,10);attDate.value=date;let s=db.students.filter(x=>x.class===cl);attTable.innerHTML=s.map(x=>{let a=x.attendance?.[date],total=Object.values(x.attendance||{}).length,p=total?Object.values(x.attendance).filter(v=>v===true).length/total*100:100;return `<tr><td><strong>${esc(x.name)}</strong></td><td><input type="checkbox" class="present" data-id="${x.id}" ${a===true?'checked':''}></td><td>${total-(Object.values(x.attendance||{}).filter(v=>v===true).length)}</td><td>${p.toFixed(0)}%</td></tr>`}).join('')||'<tr><td colspan="4" class="empty">Nenhum aluno.</td></tr>'}
+function saveAttendance(){let date=attDate.value;document.querySelectorAll('.present').forEach(i=>{let s=db.students.find(x=>x.id===i.dataset.id);s.attendance[date]=i.checked});save();renderAttendance();toast('Frequência salva!')}
+function renderReport(){let s=db.students.find(x=>x.id===reportStudent.value);if(!s){reportBox.innerHTML='<div class="empty">Selecione um aluno.</div>';return}let rows=db.subjects.map(sub=>{let ms=[1,2,3,4].map(p=>avg(s.grades?.[p]?.[sub]||{}));let final=ms.filter(x=>x!=null);let m=final.length?final.reduce((a,b)=>a+b,0)/final.length:null;let z=sit(m);return `<tr><td>${esc(sub)}</td>${ms.map(v=>`<td>${v==null?'—':v.toFixed(1)}</td>`).join('')}<td>${m==null?'—':m.toFixed(1)}</td><td>${m==null?'—':`<span class="badge ${z[1]}">${z[0]}</span>`}</td></tr>`}).join('');reportBox.innerHTML=`<div class="panel-head"><div><strong>${esc(s.name)}</strong><div class="muted">${esc(s.unit)} · ${esc(className(s.class))} · Matrícula ${esc(s.id)}</div></div></div><div class="table-wrap"><table><thead><tr><th>Disciplina</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>Final</th><th>Situação</th></tr></thead><tbody>${rows}</tbody></table></div>`}
+function printReport(){window.print()}
+function renderAdmin(){unitAdmin.innerHTML=db.units.map((u,i)=>`<div style="padding:9px 0;border-bottom:1px solid var(--line)">${i+1}. ${esc(u)}</div>`).join('');userAdmin.innerHTML=db.users.filter(u=>u.role==='professor').map(u=>`<div style="padding:10px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center"><div><strong>${esc(u.name)}</strong><div class="muted small">@${esc(u.user)}</div></div><button class="outline" onclick="deleteTeacher('${esc(u.user)}')">Excluir</button></div>`).join('')||'<div class="empty">Nenhum professor cadastrado.</div>';subjectAdmin.innerHTML=db.subjects.map((s,i)=>`<span class="badge neutral" style="margin:4px">${esc(s)}</span>`).join('')}
+function openStudent(){modalBox.innerHTML=`<h2>Novo aluno</h2><div class="formgrid"><div class="field full"><label>Nome completo</label><input id="mName"></div><div class="field"><label>Matrícula</label><input id="mId"></div><div class="field"><label>Unidade</label><select id="mUnit">${opts(db.units)}</select></div><div class="field full"><label>Turma</label><select id="mClass">${db.classes.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.unit)}</option>`).join('')}</select></div></div><div class="modal-actions"><button class="outline" onclick="closeModal()">Cancelar</button><button class="gold" onclick="addStudent()">Cadastrar</button></div>`;showModal()}
+function addStudent(){let n=mName.value.trim(),id=mId.value.trim(),u=mUnit.value,c=mClass.value;if(!n||!id)return alert('Preencha nome e matrícula.');if(db.students.some(x=>x.id===id))return alert('Matrícula já cadastrada.');db.students.push({id,name:n,unit:u,class:c,grades:{},attendance:{}});save();closeModal();renderAll();toast('Aluno cadastrado!')}
+function deleteStudent(id){if(currentUser.role!=='admin')return alert('Somente o administrador pode excluir alunos.');if(confirm('Excluir aluno?')){db.students=db.students.filter(x=>x.id!==id);save();renderAll()}}
+function openClass(){modalBox.innerHTML=`<h2>Nova turma</h2><div class="field"><label>Nome da turma</label><input id="mClassName" placeholder="Ex.: 1º Ano C"></div><div class="field"><label>Unidade</label><select id="mClassUnit">${opts(db.units)}</select></div><div class="modal-actions"><button class="outline" onclick="closeModal()">Cancelar</button><button class="gold" onclick="addClass()">Criar</button></div>`;showModal()}
+function addClass(){let n=mClassName.value.trim(),u=mClassUnit.value;if(!n)return;if(db.classes.some(x=>x.name===n&&x.unit===u))return alert('Turma já existe.');db.classes.push({id:'C'+Date.now(),name:n,unit:u});save();closeModal();renderAll();toast('Turma criada!')}
+function openUnit(){modalBox.innerHTML=`<h2>Editar 3 unidades</h2>${db.units.map((u,i)=>`<div class="field"><label>Unidade ${i+1}</label><input id="unit${i}" value="${esc(u)}"></div>`).join('')}<div class="modal-actions"><button class="outline" onclick="closeModal()">Cancelar</button><button class="gold" onclick="saveUnits()">Salvar</button></div>`;showModal()}
+function saveUnits(){let nu=[0,1,2].map(i=>document.getElementById('unit'+i).value.trim());if(nu.some(x=>!x))return alert('Preencha as três unidades.');let map={};db.units.forEach((x,i)=>map[x]=nu[i]);db.units=nu;db.classes.forEach(c=>c.unit=map[c.unit]||c.unit);db.students.forEach(s=>s.unit=map[s.unit]||s.unit);save();closeModal();init();toast('Unidades atualizadas!')}
+function openSubject(){modalBox.innerHTML=`<h2>Nova disciplina</h2><div class="field"><label>Nome</label><input id="mSubject"></div><div class="modal-actions"><button class="outline" onclick="closeModal()">Cancelar</button><button class="gold" onclick="addSubject()">Adicionar</button></div>`;showModal()}
+function addSubject(){let s=mSubject.value.trim();if(!s)return;if(db.subjects.includes(s))return alert('Disciplina já existe.');db.subjects.push(s);save();closeModal();init();toast('Disciplina adicionada!')}
+function openUser(){
+  if(currentUser?.role!=='admin')return alert('Somente o administrador pode criar professores.');
+  modalBox.innerHTML=`<h2>Novo professor</h2>
+  <div class="formgrid">
+    <div class="field full"><label>Nome completo</label><input id="mUserName" placeholder="Nome do professor"></div>
+    <div class="field"><label>Usuário</label><input id="mUser" placeholder="ex.: prof.maria"></div>
+    <div class="field"><label>Senha</label><input id="mPass" type="password" placeholder="Defina uma senha"></div>
+  </div>
+  <div class="modal-actions"><button class="outline" onclick="closeModal()">Cancelar</button><button class="gold" onclick="addUser()">Criar professor</button></div>`;
+  showModal();
+}
+function addUser(){
+  let u=mUser.value.trim(),p=mPass.value,n=mUserName.value.trim();
+  if(!u||!p||!n)return alert('Preencha todos os campos.');
+  if(u===ADMIN_USER)return alert('Esse usuário é reservado ao administrador.');
+  if(db.users.some(x=>x.user===u))return alert('Usuário já existe.');
+  db.users.push({user:u,pass:p,name:n,role:'professor'});
+  save();closeModal();renderAdmin();toast('Professor criado com sucesso!');
+}
+function deleteTeacher(user){
+  if(currentUser?.role!=='admin')return alert('Somente o administrador.');
+  if(confirm('Excluir este professor?')){
+    db.users=db.users.filter(u=>u.user!==user || u.user===ADMIN_USER);
+    save();renderAdmin();toast('Professor excluído.');
+  }
+}
+function showModal(){modal.classList.add('show')}function closeModal(){modal.classList.remove('show')}
+function exportCSV(){let p=dashPeriod.value,rows=[['Aluno','Unidade','Turma','Média','Situação']];db.students.forEach(s=>{let m=studentOverall(s,p);rows.push([s.name,s.unit,className(s.class),m==null?'':m.toFixed(1),m==null?'':sit(m)[0]])});let b=new Blob(['\ufeff'+rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(';')).join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sistema-notas.csv';a.click();URL.revokeObjectURL(a.href)}
+function downloadBackup(){let b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup-sistema-notas.json';a.click();URL.revokeObjectURL(a.href)}
+function resetDemo(){if(confirm('Restaurar os dados de demonstração? Isso apagará os dados locais atuais.')){db=structuredClone(demo);save();init();toast('Dados restaurados.')}}
+function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2300)}
+document.addEventListener('DOMContentLoaded',()=>{attDate.value=new Date().toISOString().slice(0,10)})
+</script>
+<style>@media print{.top,aside,.filters,.head button{display:none!important}main{padding:0}.page{display:none!important}#boletins{display:block!important}.panel{box-shadow:none}}</style>
+</body></html>
