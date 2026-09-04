@@ -1,31 +1,36 @@
-name: Importar aplicativo
+name: Publicar aplicativo completo
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/import-app.yml'
 jobs:
-  import:
+  publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Baixar versão do aplicativo
+      - name: Reconstruir aplicativo completo
         run: |
-          rm -f index.html
-          curl -L --fail -o app.zip https://github.com/colegio-horizonte/SISTEMADENOTAS/raw/main/Index.zip
-          mkdir -p imported
-          unzip -o app.zip -d imported
-          find imported -maxdepth 3 -type f -print
-          candidate=$(find imported -type f \( -iname 'index.html' -o -iname 'Index.html' \) | head -n 1)
-          test -n "$candidate"
-          cp "$candidate" index.html
-          rm -rf imported app.zip
-      - name: Commitar aplicativo
+          cat payload00 payload01 payload02 > app_payload.b64
+          base64 -d app_payload.b64 | gzip -d > index.html
+          test -s index.html
+          test -s logo-colegio.svg
+          rm -f payload00 payload01 payload02 app_payload.b64 students-seed.json
+      - name: Validar aplicativo
+        run: |
+          grep -q 'Aurora Mendes' index.html
+          grep -q 'Dante Albuquerque' index.html
+          grep -q '3º Bimestre' index.html
+          ! grep -q '4º Bimestre' index.html
+          ! grep -q 'Nota 4' index.html
+          ! grep -q 'horizonteadmin' index.html
+          ! grep -q 'horizonteleticia' index.html
+      - name: Publicar
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git diff --cached --quiet || git commit -m 'Importar aplicativo do projeto Horizonte'
+          git diff --cached --quiet || git commit -m 'Publicar aplicativo completo com 150 alunos e 3 bimestres'
           git push
