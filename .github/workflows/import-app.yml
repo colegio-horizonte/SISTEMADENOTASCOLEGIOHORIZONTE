@@ -1,0 +1,31 @@
+name: Importar aplicativo
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/import-app.yml'
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baixar versão do aplicativo
+        run: |
+          rm -f index.html
+          curl -L --fail -o app.zip https://github.com/colegio-horizonte/SISTEMADENOTAS/raw/main/Index.zip
+          mkdir -p imported
+          unzip -o app.zip -d imported
+          find imported -maxdepth 3 -type f -print
+          candidate=$(find imported -type f \( -iname 'index.html' -o -iname 'Index.html' \) | head -n 1)
+          test -n "$candidate"
+          cp "$candidate" index.html
+          rm -rf imported app.zip
+      - name: Commitar aplicativo
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet || git commit -m 'Importar aplicativo do projeto Horizonte'
+          git push
