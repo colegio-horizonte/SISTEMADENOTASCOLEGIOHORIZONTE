@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460">
+<defs>
+ <linearGradient id="gold" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#f6df91"/><stop offset=".45" stop-color="#c99b3e"/><stop offset="1" stop-color="#8e6522"/></linearGradient>
+ <linearGradient id="blue" x1="0" x2="1"><stop stop-color="#071d3a"/><stop offset=".5" stop-color="#173f6d"/><stop offset="1" stop-color="#071d3a"/></linearGradient>
+</defs>
+<rect width="800" height="460" fill="none"/>
+<g stroke="url(#gold)" stroke-width="8" stroke-linecap="round"><path d="M400 22v72M326 35l34 65M258 76l58 48M205 138l75 28M185 210h82M474 35l-34 65M542 76l-58 48M595 138l-75 28M615 210h-82"/></g>
+<circle cx="400" cy="156" r="76" fill="url(#gold)" stroke="#a87927" stroke-width="5"/>
+<g fill="url(#gold)" stroke="#a87927" stroke-width="2"><path d="M182 91l7 16 17 2-13 11 4 17-15-9-15 9 4-17-13-11 17-2z"/><path d="M252 48l6 13 14 2-11 9 3 14-12-7-12 7 3-14-11-9 14-2z"/><path d="M548 48l6 13 14 2-11 9 3 14-12-7-12 7 3-14-11-9 14-2z"/><path d="M618 91l7 16 17 2-13 11 4 17-15-9-15 9 4-17-13-11 17-2z"/></g>
+<path d="M112 230 Q205 185 335 220 Q378 231 400 250 Q422 231 465 220 Q595 185 688 230 L715 350 Q594 305 478 325 Q430 333 400 350 Q370 333 322 325 Q206 305 85 350z" fill="url(#blue)" stroke="url(#gold)" stroke-width="10"/>
+<path d="M130 247 Q225 213 325 241 Q365 252 400 282 Q435 252 475 241 Q575 213 670 247 L688 318 Q575 282 476 300 Q431 308 400 329 Q369 308 324 300 Q225 282 112 318z" fill="#f7f4e8" stroke="#c89a3d" stroke-width="6"/>
+<path d="M315 132 L486 151 L461 280 Q454 308 430 326 L305 302 Q294 299 292 285z" fill="#fffdf4" stroke="#17304f" stroke-width="6"/>
+<g fill="none" stroke="#17304f" stroke-width="5"><path d="M322 179l11 11 20-24M322 219l11 11 20-24M318 258l11 11 20-24"/><path d="M365 174h90M365 214h76M361 253h72"/></g>
+<ellipse cx="421" cy="174" rx="42" ry="24" fill="none" stroke="#17304f" stroke-width="5" transform="rotate(-7 421 174)"/>
+<text x="421" y="182" text-anchor="middle" font-family="Georgia,serif" font-size="26" font-style="italic" fill="#17304f">100</text>
+<text x="400" y="384" text-anchor="middle" font-family="Georgia,serif" font-size="55" letter-spacing="2" fill="#17304f" stroke="#c89a3d" stroke-width="1">SISTEMA DE</text>
+<text x="400" y="438" text-anchor="middle" font-family="Georgia,serif" font-size="64" letter-spacing="1" fill="#17304f" stroke="#c89a3d" stroke-width="1.5">NOTAS</text>
+</svg>
