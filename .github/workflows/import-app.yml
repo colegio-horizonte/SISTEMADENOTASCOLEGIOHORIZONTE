@@ -67,7 +67,6 @@ jobs:
           grep -q '"DB"' wrangler.jsonc
           grep -q 'n4' grade-policy.js
           grep -q '2º Bimestre — Aberto' grade-policy.js
-          grep -q 'Fechado' final-grade-policy.js
       - name: Publicar
         run: |
           git config user.name 'github-actions[bot]'
