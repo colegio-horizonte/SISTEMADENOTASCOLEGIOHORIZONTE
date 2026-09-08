@@ -1,0 +1,16 @@
+(function(){
+  const SUBJECTS=['Português','Matemática','História','Geografia','Biologia','Física','Química','Inglês'];
+  const MAX=[6,5,10,9];
+  function D(){return window.__horizonte?.db||window.db}
+  function nums(g){return ['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number)}
+  function avg(g){const a=nums(g);return a.length?a.reduce((x,y)=>x+y,0)/3:null}
+  function unitAvg(s,p){const a=SUBJECTS.map(x=>avg(s.grades?.[p]?.[x]||{})).filter(x=>x!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+  function sit(m){return m==null?['Sem nota','neutral']:m>=6?['Aprovado','ok']:['Recuperação','rec']}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function patch(){const p=document.getElementById('gradePeriod'),sub=document.getElementById('gradeSubject')?.value||'';if(!p)return;const v=p.value||'2';p.innerHTML='<option value="1">1º Bimestre — Fechado</option><option value="2">2º Bimestre — '+(sub==='Português'?'Aberto':'Fechado')+'</option><option value="3">3º Bimestre — Aberto</option>';p.value=v;const h=document.querySelector('#notas .head p');if(h)h.textContent='1º bimestre fechado. 2º bimestre fechado para todas as matérias, exceto Português. 3º bimestre aberto.'}
+  function render(){const d=D(),t=document.getElementById('gradeTable'),cl=document.getElementById('gradeClass')?.value,sub=document.getElementById('gradeSubject')?.value,p=+(document.getElementById('gradePeriod')?.value||2);if(!d||!t||!sub)return;patch();const locked=p===1||(p===2&&sub!=='Português');const list=d.students.filter(s=>s.class===cl);t.innerHTML=list.map(s=>{const g=s.grades?.[p]?.[sub]||{},m=avg(g),z=sit(m);return '<tr><td><b>'+esc(s.name)+'</b><br><small>'+esc(s.id)+'</small></td>'+['n1','n2','n3','n4'].map((k,i)=>'<td><input class="gi" data-id="'+esc(s.id)+'" data-k="'+k+'" type="number" min="0" max="'+MAX[i]+'" step=".1" value="'+(g[k]??'')+'" '+(locked?'disabled':'')+'></td>').join('')+'<td><strong>'+(m==null?'—':m.toFixed(2))+'</strong></td><td><span class="badge '+z[1]+'">'+z[0]+'</span></td></tr>'}).join('')||'<tr><td colspan="8">Nenhum aluno nesta turma.</td></tr>'}
+  window.renderGrades=render;
+  window.saveGrades=async function(){const d=D(),p=+(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;if(!d||!sub)return;if(p===1||p===2&&sub!=='Português'){alert(p===1?'O 1º bimestre está fechado.':'O 2º bimestre está fechado para esta matéria.');return}document.querySelectorAll('#gradeTable .gi:not(:disabled)').forEach(i=>{const s=d.students.find(x=>String(x.id)===String(i.dataset.id));if(!s)return;s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};s.grades[p][sub][i.dataset.k]=i.value===''?'':Number(i.value)});try{await window.save();render();window.toast?.('Notas salvas com segurança.')}catch(e){alert(e.message||'Falha ao salvar.')}};
+  function boot(){const p=document.getElementById('gradePeriod'),s=document.getElementById('gradeSubject');if(!p||!s||!D()?.students)return setTimeout(boot,300);if(!p.dataset.finalGradePolicy){p.dataset.finalGradePolicy='1';p.addEventListener('change',render)}s.addEventListener('change',()=>setTimeout(render,0));render()}
+  boot();
+})();
