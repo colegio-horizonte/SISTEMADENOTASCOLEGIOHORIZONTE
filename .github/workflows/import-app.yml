@@ -14,6 +14,7 @@ on:
       - 'notes-fix.js'
       - 'emergency-fix.js'
       - 'nav-fix.js'
+      - 'student-data-fix.js'
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -45,6 +46,7 @@ jobs:
           test -s notes-fix.js
           test -s emergency-fix.js
           test -s nav-fix.js
+          test -s student-data-fix.js
           grep -q 'Aurora Mendes' students-seed.json
           grep -q 'Dante Albuquerque' students-seed.json
           grep -q 'Adicionar professor' admin-tools.js
@@ -62,7 +64,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js provas-v2.js worker.js wrangler.jsonc .github/workflows/import-app.yml grade-policy.js notes-fix.js emergency-fix.js nav-fix.js
-          git diff --cached --quiet || git commit -m 'Corrigir acesso aos bimestres e lancamento de notas'
+          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js provas-v2.js worker.js wrangler.jsonc .github/workflows/import-app.yml grade-policy.js notes-fix.js emergency-fix.js nav-fix.js student-data-fix.js
+          git diff --cached --quiet || git commit -m 'Corrigir recuperação e sincronizar notas com boletim'
           git push
       # Publicação acionada para garantir o deploy da versão atual.
