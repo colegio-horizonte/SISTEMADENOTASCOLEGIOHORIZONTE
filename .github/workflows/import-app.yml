@@ -11,6 +11,7 @@ on:
       - 'worker.js'
       - 'wrangler.jsonc'
       - 'grade-policy.js'
+      - 'notes-fix.js'
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -39,6 +40,7 @@ jobs:
           test -s worker.js
           test -s wrangler.jsonc
           test -s grade-policy.js
+          test -s notes-fix.js
           grep -q 'Aurora Mendes' students-seed.json
           grep -q 'Dante Albuquerque' students-seed.json
           grep -q 'Adicionar professor' admin-tools.js
@@ -51,10 +53,11 @@ jobs:
           grep -q '"DB"' wrangler.jsonc
           grep -q 'n4' grade-policy.js
           grep -q '2º Bimestre — Aberto' grade-policy.js
+          grep -q '2º Bimestre — Aberto' notes-fix.js
       - name: Publicar
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js provas-v2.js worker.js wrangler.jsonc .github/workflows/import-app.yml grade-policy.js
-          git diff --cached --quiet || git commit -m 'Atualizar regra de notas e abrir 2º bimestre'
+          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js provas-v2.js worker.js wrangler.jsonc .github/workflows/import-app.yml grade-policy.js notes-fix.js
+          git diff --cached --quiet || git commit -m 'Corrigir acesso aos bimestres e lancamento de notas'
           git push
