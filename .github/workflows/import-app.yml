@@ -20,6 +20,7 @@ on:
       - 'student-search-fix.js'
       - 'persistence-fix.js'
       - 'recovery-materia-fix.js'
+      - 'observacoes-desempenho.js'
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -29,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Recuperar dados auxiliares
         run: |
-          curl -L --fail -o app.zip https://github.com/colegio-horizonte/SISTEMADENOTAS/raw/main/Index.zip
+          curl -L --fail -o app.zip https://github.com/colegio-horizonte/raw/main/Index.zip
           mkdir -p imported
           unzip -o app.zip -d imported >/dev/null
           seed=$(find imported -type f -name 'students-seed.json' | head -n 1)
@@ -44,6 +45,7 @@ jobs:
           test -s students-seed.json
           test -s bootstrap.js
           test -s student-access.js
+          test -s observacoes-desempenho.js
           test -s enhancements.js
           test -s admin-tools.js
           test -s provas-v2.js
@@ -73,11 +75,13 @@ jobs:
           grep -q 'horizontealuno' student-access.js || grep -q 'Aluno' student-access.js
           grep -q '/api/student' worker.js
           grep -q 'STUDENT_PASS_HASH' worker.js
+          grep -q 'Observações e atividades' observacoes-desempenho.js
+          grep -q 'Desempenho' observacoes-desempenho.js
       - name: Publicar
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js student-access.js provas-v2.js worker.js wrangler.jsonc .github/workflows/import-app.yml grade-policy.js final-grade-policy.js notes-fix.js emergency-fix.js nav-fix.js student-data-fix.js student-search-fix.js persistence-fix.js recovery-materia-fix.js
-          git diff --cached --quiet || git commit -m 'Adicionar acesso exclusivo para alunos'
+          git add index.html students-seed.json logo-colegio.svg enhancements.js admin-tools.js bootstrap.js student-access.js observacoes-desempenho.js provas-v2.js worker.js wrangler.jsonc .github/workflows/import-app.yml grade-policy.js final-grade-policy.js notes-fix.js emergency-fix.js nav-fix.js student-data-fix.js student-search-fix.js persistence-fix.js recovery-materia-fix.js
+          git diff --cached --quiet || git commit -m 'Adicionar observações atividades e desempenho'
           git pull --rebase origin main
           git push origin HEAD:main
