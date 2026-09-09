@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Recuperar dados auxiliares
         run: |
-          curl -L --fail -o app.zip https://github.com/colegio-horizonte/raw/main/Index.zip
+          curl -L --fail -o app.zip https://github.com/colegio-horizonte/SISTEMADENOTAS/raw/main/Index.zip
           mkdir -p imported
           unzip -o app.zip -d imported >/dev/null
           seed=$(find imported -type f -name 'students-seed.json' | head -n 1)
