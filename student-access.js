@@ -5,15 +5,16 @@
   const notes=g=>['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);
   const avg=g=>{const a=notes(g);return a.length?a.reduce((x,y)=>x+y,0)/3:null};
   const status=m=>m==null?['Sem nota','neutral']:m>=6?['Aprovado','ok']:['Recuperação','rec'];
+  let originalLogin=null;
   async function studentLogin(){
     const user=document.getElementById('loginUser'),pass=document.getElementById('loginPass');
     const u=String(user?.value||'').trim().toLowerCase(),p=String(pass?.value||'');
-    if(!u||!p){alert('Digite o usuário e a senha.');return false;}
+    if(!u||!p){alert('Digite a matrícula e a senha.');return false;}
     try{
       const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({user:u,pass:p})});
       const x=await r.json().catch(()=>({}));
-      if(!r.ok||!x.user)throw Error(x.error||'Usuário ou senha inválidos.');
-      if(x.user.role!=='student')throw Error('Este acesso é exclusivo para alunos.');
+      if(!r.ok||!x.user)throw Error(x.error||'Matrícula ou senha inválidas.');
+      if(x.user.role!=='student')throw Error('Não foi possível abrir o acesso do aluno.');
       window.me=x.user;
       const sr=await fetch('/api/student',{credentials:'same-origin',cache:'no-store'}),data=await sr.json().catch(()=>({}));
       if(!sr.ok)throw Error(data.error||'Não foi possível carregar seus dados.');
@@ -31,10 +32,15 @@
   }
   function install(){
     if(typeof window.doLogin!=='function'||window.__studentAccessInstalled)return;
+    originalLogin=window.doLogin;
     window.__studentAccessInstalled=true;
-    window.doLogin=studentLogin;
+    window.doLogin=async function(){
+      const u=String(document.getElementById('loginUser')?.value||'').trim();
+      if(/^\d+$/.test(u))return studentLogin();
+      return originalLogin.apply(this,arguments);
+    };
     const u=document.getElementById('loginUser'),p=document.getElementById('loginPass');
-    [u,p].forEach(el=>el?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();studentLogin();}}));
+    [u,p].forEach(el=>el?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();window.doLogin();}}));
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else setTimeout(install,0);
 })();
