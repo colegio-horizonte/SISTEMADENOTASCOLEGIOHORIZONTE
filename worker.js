@@ -38,14 +38,34 @@ const GRADE_FIX=`(function(){
    guard();
    if(!window.__originalSaveGrades&&typeof window.saveGrades==='function')window.__originalSaveGrades=window.saveGrades;
    window.saveGrades=async function(){
-     const b=prompt('Digite o código do crachá do professor para salvar/fechar as notas:');
-     if(b!=='PROF2026'){alert('Crachá inválido.');return}
-     const p=Number(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;
-     document.querySelectorAll('#gradeTable .gi').forEach(i=>{const s=db.students.find(x=>String(x.id)===String(i.dataset.id));if(!s||i.disabled)return;s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};const g=s.grades[p][sub],raw=String(i.value).trim().replace(',','.');g[i.dataset.k]=raw===''?'':Number(raw);g.media=avg(g);});
-     if(typeof window.save==='function')await window.save();
-     redrawMedia();
-     window.toast?.('Notas e médias salvas com sucesso.');
-   };
+     const p=Number(document.getElementById('gradePeriod')?.value||3),sub=document.getElementById('gradeSubject')?.value;
+     if(!sub)return;
+     if(p<2){alert('Esta unidade está fechada.');return}
+     const badge=prompt('Digite o código do crachá do professor para salvar/fechar as notas:');
+     if(badge!=='PROF2026'){alert('Crachá inválido.');return}
+     const d=window.__horizonte?.db||window.db;
+     if(!d||!Array.isArray(d.students)){alert('Dados dos alunos não carregados.');return}
+     const inputs=[...document.querySelectorAll('#gradeTable .gi')];
+     for(const i of inputs){
+       const raw=String(i.value??'').trim().replace(',','.');
+       const max=Number(i.max)||10;
+       if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>max)){i.focus();alert('Nota inválida. Informe um valor entre 0 e '+max+'.');return}
+       const s=d.students.find(x=>String(x.id)===String(i.dataset.id));if(!s)continue;
+       s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};
+       s.grades[p][sub][i.dataset.k]=raw===''?'':Number(raw);
+     }
+     const gAvg=g=>{const v=['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);return v.length?v.reduce((a,b)=>a+b,0)/3:null};
+     d.students.forEach(s=>{const g=s.grades?.[p]?.[sub];if(g)g.media=gAvg(g)});
+     try{
+       const r=await fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(d)});
+       if(!r.ok)throw Error((await r.json().catch(()=>({}))).error||'Falha ao salvar no banco online.');
+       localStorage.setItem('horizonte_state',JSON.stringify(d));
+       window.db=d;
+       const t=document.getElementById('gradeTable');if(t)t.dataset.mediaGuard='';if(t)t.dataset.horizonteSig='';
+       if(typeof window.renderGrades==='function')window.renderGrades();
+       window.toast?.('Notas e médias salvas com sucesso no banco online.');
+     }catch(e){alert(e.message||'Não foi possível salvar as notas.')}
+   };;
  }
  install();
 })();})()`
