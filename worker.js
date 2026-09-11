@@ -16,60 +16,37 @@ if(url.pathname==='/api/state'){const u=await me(request,env);if(!u)return Respo
 if(url.pathname==='/api/users'){const u=await me(request,env);if(!u)return Response.json({error:'Não autenticado.'},{status:401});if(u.role!=='admin')return Response.json({error:'Acesso negado.'},{status:403});await ensure(env);if(request.method==='GET'){const rows=await env.DB.prepare("SELECT user,name,role FROM users WHERE role='professor' ORDER BY name").all();return Response.json({users:rows.results||[]})}if(request.method==='POST'){const b=await request.json().catch(()=>({})),name=String(b.name||'').trim(),user=String(b.user||'').trim().toLowerCase(),pass=String(b.pass||'');if(!name||!user||!pass)return Response.json({error:'Nome, usuário e senha são obrigatórios.'},{status:400});if(!/^[a-z0-9._-]+$/.test(user))return Response.json({error:'Usuário inválido.'},{status:400});if(pass.length<6)return Response.json({error:'A senha deve ter pelo menos 6 caracteres.'},{status:400});const exists=await env.DB.prepare('SELECT user FROM users WHERE user=?').bind(user).first();if(exists)return Response.json({error:'Este usuário já existe.'},{status:409});await env.DB.prepare('INSERT INTO users(user,name,role,pass_hash) VALUES(?,?,?,?)').bind(user,name,'professor',await hash(pass)).run();return Response.json({ok:true,user:{user,name,role:'professor'}})}if(request.method==='DELETE'){const user=String(url.searchParams.get('user')||'').trim().toLowerCase();if(!user)return Response.json({error:'Usuário não informado.'},{status:400});await env.DB.prepare("DELETE FROM users WHERE user=? AND role='professor'").bind(user).run();return Response.json({ok:true})}}
 return null}
 const GRADE_FIX=\`(function(){
-function install(){
- const p=document.getElementById('gradePeriod'),t=document.getElementById('gradeTable'),s=document.getElementById('gradeSubject'),c=document.getElementById('gradeClass');
- if(!p||!t||!s||!c||!window.db||!Array.isArray(db.students))return false;
- const value=p.value;
- const wanted='<option value="1">1º Bimestre — Fechado</option><option value="2">2º Bimestre — Aberto</option><option value="3">3º Bimestre — Aberto</option>';
- if(p.innerHTML!==wanted)p.innerHTML=wanted;
- if(value==='2'||value==='3')p.value=value;
- function average(g){
-   const a=['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);
-   return a.length?a.reduce((u,v)=>u+v,0)/a.length:null;
+(function(){
+ let active=null;
+ function avg(g){const v=['n1','n2','n3','n4'].map(k=>g&&g[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+ function table(){return document.getElementById('gradeTable')}
+ function redrawMedia(){
+   const t=table(), p=Number(document.getElementById('gradePeriod')?.value||2), sub=document.getElementById('gradeSubject')?.value;
+   if(!t||!window.db||!sub)return;
+   t.querySelectorAll('tr').forEach(tr=>{const i=tr.querySelector('.gi');if(!i)return;const s=db.students.find(x=>String(x.id)===String(i.dataset.id));const g=s?.grades?.[p]?.[sub]||{};const m=avg(g);const cell=tr.querySelector('.grade-media');if(cell)cell.textContent=m==null?'—':m.toFixed(2);});
  }
- function render(){
-   const per=+p.value,sub=s.value,students=db.students.filter(x=>x.class===c.value);
-   t.innerHTML=students.map(x=>{
-     const g=x.grades?.[per]?.[sub]||{},m=average(g);
-     const z=m==null?['Sem nota','neutral']:m>=6?['Aprovado','ok']:m>=5?['Recuperação','rec']:['Reprovado','bad'];
-     return '<tr><td><b>'+x.name+'</b><br><small>'+x.id+'</small></td>'+['n1','n2','n3','n4'].map(k=>'<td><input class="gi" data-id="'+x.id+'" data-k="'+k+'" type="text" inputmode="decimal" autocomplete="off" value="'+(g[k]??'')+'" '+(per===1?'disabled':'')+'></td>').join('')+'<td class="grade-media">'+(m==null?'—':m.toFixed(2))+'</td><td><span class="badge '+z[1]+'">'+z[0]+'</span></td></tr>';
-   }).join('')||'<tr><td colspan="7">Nenhum aluno.</td></tr>';
+ function guard(){
+   const t=table();if(!t||t.dataset.mediaGuard)return;
+   t.dataset.mediaGuard='1';
+   t.addEventListener('focusin',e=>{const i=e.target.closest('.gi,.gradeInput');if(i)active=i},true);
+   t.addEventListener('input',e=>{const i=e.target.closest('.gi,.gradeInput');if(!i)return;active=i;});
+   t.addEventListener('change',e=>{const i=e.target.closest('.gi,.gradeInput');if(!i)return;const s=db.students.find(x=>String(x.id)===String(i.dataset.id)),p=Number(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;if(!s||!sub)return;s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};const g=s.grades[p][sub],raw=String(i.value).trim().replace(',','.');g[i.dataset.k]=raw===''?'':Number(raw);g.media=avg(g);redrawMedia();});
+   new MutationObserver(()=>{if(active&&document.activeElement!==active){const i=table().querySelector('.gi[data-id="'+CSS.escape(active.dataset.id)+'"][data-k="'+CSS.escape(active.dataset.k)+'"]');if(i){i.value=active.value;i.focus();try{i.setSelectionRange(i.value.length,i.value.length)}catch(e){}}redrawMedia()}}).observe(t,{childList:true,subtree:true});
  }
- function badge(){
-   return new Promise(resolve=>{
-    const m=document.createElement('div');m.style='position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;z-index:99999';
-    m.innerHTML='<div style="background:#fff;padding:24px;border-radius:14px;width:min(430px,90vw)"><h3>Crachá do professor obrigatório</h3><p>Informe o código do crachá para salvar/fechar as notas.</p><input id="workerBadge" type="text" inputmode="numeric" autocomplete="off" autofocus placeholder="Código do crachá" style="width:100%;box-sizing:border-box;padding:12px"><div style="margin-top:14px;text-align:right"><button id="bc">Cancelar</button> <button id="bo" class="primary">Confirmar</button></div></div>';
-    document.body.appendChild(m);const i=m.querySelector('#workerBadge');i.focus();
-    const done=ok=>{const v=i.value.trim();m.remove();resolve(ok?v:'')};
-    m.querySelector('#bc').onclick=()=>done(false);m.querySelector('#bo').onclick=()=>done(true);
-    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();done(true)}if(e.key==='Escape')done(false)};
-   });
+ function install(){
+   const t=table();if(!t)return setTimeout(install,300);
+   guard();
+   if(!window.__originalSaveGrades&&typeof window.saveGrades==='function')window.__originalSaveGrades=window.saveGrades;
+   window.saveGrades=async function(){
+     const b=prompt('Digite o código do crachá do professor para salvar/fechar as notas:');
+     if(b!=='PROF2026'){alert('Crachá inválido.');return}
+     const p=Number(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;
+     document.querySelectorAll('#gradeTable .gi').forEach(i=>{const s=db.students.find(x=>String(x.id)===String(i.dataset.id));if(!s||i.disabled)return;s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};const g=s.grades[p][sub],raw=String(i.value).trim().replace(',','.');g[i.dataset.k]=raw===''?'':Number(raw);g.media=avg(g);});
+     if(typeof window.save==='function')await window.save();
+     redrawMedia();
+     window.toast?.('Notas e médias salvas com sucesso.');
+   };
  }
- window.renderGrades=render;
- window.saveGrades=async function(){
-   const per=+p.value;
-   if(per===1){alert('O 1º bimestre está fechado.');return;}
-   const b=await badge();
-   if(b!=='PROF2026'){alert('Crachá inválido. Informe o código oficial do professor.');return;}
-   const inputs=[...t.querySelectorAll('.gi:not(:disabled)')];
-   for(const i of inputs){
-     const raw=String(i.value??'').trim().replace(',','.');
-     if(raw===''||!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>10){i.focus();alert('Nota inválida. Informe um valor entre 0 e 10.');return;}
-   }
-   inputs.forEach(i=>{
-     const x=db.students.find(q=>String(q.id)===String(i.dataset.id));if(!x)return;
-     x.grades??={};x.grades[per]??={};x.grades[per][s.value]??={};
-     const g=x.grades[per][s.value],raw=String(i.value??'').trim().replace(',','.');
-     g[i.dataset.k]=raw===''?'':Number(raw);
-     const m=average(g);g.media=m==null?'':Number(m.toFixed(2));
-   });
-   try{await window.save();render();window.renderAll?.();window.toast?.('Notas e médias salvas com sucesso.');}
-   catch(e){alert(e.message||'Não foi possível salvar as notas.');}
- };
- if(!p.dataset.horizonteBound){p.dataset.horizonteBound='1';p.addEventListener('change',render);}
- if(t.closest('.page')?.classList.contains('active')||document.getElementById('notas')?.classList.contains('active'))render();
- return true;
-}
-function boot(){if(install())return;setTimeout(boot,250)}boot();
-})()\`
+ install();
+})();})()\`
 export default {async fetch(request,env){const path=new URL(request.url).pathname;if(path.startsWith('/api/')){try{const r=await api(request,env);if(r)return r}catch(e){return Response.json({error:e.message||'Erro interno.'},{status:500})}}const res=await env.ASSETS.fetch(request);const ct=res.headers.get('content-type')||'';if(request.method==='GET'&&ct.includes('text/html'))return new HTMLRewriter().on('body',{element(e){e.append('<script src="/bootstrap.js?v=20260908s"></script><script>'+GRADE_FIX.replace(/<\/script>/g,'<\\/script>')+'</script>',{html:true})}}).transform(res);return res}};
