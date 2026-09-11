@@ -41,6 +41,8 @@
     const p=Number(per.value);
     if(p===1){alert('O 1º bimestre está fechado.');return}
     const badge=await askBadge();
+    const CRAchaO_OFICIAL='PROF2026';
+    if(badge!==CRAchaO_OFICIAL){alert('Crachá inválido. Informe o código oficial do professor.');return}
     if(!badge){alert('O crachá do professor é obrigatório para fechar/salvar as notas.');return}
     const inputs=[...document.querySelectorAll('#gradeTable .gi:not(:disabled),#gradeTable .gradeInput:not(:disabled)')];
     for(const i of inputs){
