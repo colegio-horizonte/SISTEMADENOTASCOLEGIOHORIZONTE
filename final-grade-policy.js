@@ -44,13 +44,13 @@
     if(!badge){alert('O crachá do professor é obrigatório para fechar/salvar as notas.');return}
     const inputs=[...document.querySelectorAll('#gradeTable .gi:not(:disabled),#gradeTable .gradeInput:not(:disabled)')];
     for(const i of inputs){
-      const max=Number(i.max)||10;
+      const max=10;
       const raw=String(i.value??'').trim().replace(',','.');
       if(raw==='')continue;
       const n=Number(raw);
       if(!Number.isFinite(n)||n<0||n>max){
         i.focus();
-        alert('Nota inválida. Informe um valor entre 0 e '+max+'.');
+        alert('Nota inválida. Informe um valor entre 0 e 10.');
         return;
       }
     }
