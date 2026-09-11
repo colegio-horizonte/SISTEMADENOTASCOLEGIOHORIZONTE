@@ -1,16 +1,100 @@
 (function(){
-  const SUBJECTS=['Português','Matemática','História','Geografia','Biologia','Física','Química','Inglês'];
-  const MAX=[6,5,10,9];
+  'use strict';
   function D(){return window.__horizonte?.db||window.db}
-  function nums(g){return ['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number)}
-  function avg(g){const a=nums(g);return a.length?a.reduce((x,y)=>x+y,0)/3:null}
-  function sit(m){return m==null?['Sem nota','neutral']:m>=6?['Aprovado','ok']:['Recuperação','rec']}
-  function esc(v){return String(v??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]))}
-  function patch(){const p=document.getElementById('gradePeriod'),sub=document.getElementById('gradeSubject')?.value||'';if(!p)return;const v=p.value||'2';p.innerHTML='<option value="1">1º Bimestre — Fechado</option><option value="2">2º Bimestre — '+(sub==='Português'?'Aberto':'Fechado')+'</option><option value="3">3º Bimestre — Aberto</option>';p.value=v;const h=document.querySelector('#notas .head p');if(h)h.textContent='1º bimestre fechado. 2º bimestre fechado para todas as matérias, exceto Português. 3º bimestre aberto.'}
-  function render(){const d=D(),t=document.getElementById('gradeTable'),cl=document.getElementById('gradeClass')?.value,sub=document.getElementById('gradeSubject')?.value,p=+(document.getElementById('gradePeriod')?.value||2);if(!d||!t||!sub)return;patch();const locked=p===1||(p===2&&sub!=='Português');const list=d.students.filter(s=>s.class===cl);t.innerHTML=list.map(s=>{const g=s.grades?.[p]?.[sub]||{},m=avg(g),z=sit(m);return '<tr><td><b>'+esc(s.name)+'</b><br><small>'+esc(s.id)+'</small></td>'+['n1','n2','n3','n4'].map((k,i)=>'<td><input class="gi" data-id="'+esc(s.id)+'" data-k="'+k+'" type="number" min="0" max="'+MAX[i]+'" step=".1" value="'+(g[k]??'')+'" '+(locked?'disabled':'')+'></td>').join('')+'<td><strong>'+(m==null?'—':m.toFixed(2))+'</strong></td><td><span class="badge '+z[1]+'">'+z[0]+'</span></td></tr>'}).join('')||'<tr><td colspan="8">Nenhum aluno nesta turma.</td></tr>'}
-  function askBadge(){return new Promise(resolve=>{let old=document.getElementById('teacherBadgeModal');if(old)old.remove();const m=document.createElement('div');m.id='teacherBadgeModal';m.style='position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:99999';m.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;width:min(420px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.3)"><h3 style="margin:0 0 8px">Crachá do professor obrigatório</h3><p style="margin:0 0 14px;color:#64748b">Informe o código do crachá para confirmar o fechamento das notas.</p><input id="teacherBadgeInput" type="text" inputmode="text" autocomplete="off" placeholder="Código do crachá" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:8px"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button id="teacherBadgeCancel" type="button">Cancelar</button><button id="teacherBadgeOk" type="button" class="primary">Confirmar crachá</button></div></div>';document.body.appendChild(m);const i=m.querySelector('#teacherBadgeInput');i.focus();const finish=ok=>{const v=i.value.trim();m.remove();resolve(ok&&v?v:null)};m.querySelector('#teacherBadgeCancel').onclick=()=>finish(false);m.querySelector('#teacherBadgeOk').onclick=()=>finish(true);i.addEventListener('keydown',e=>{if(e.key==='Enter')finish(true);if(e.key==='Escape')finish(false)});})}
-  async function saveGrades(){const d=D(),p=+(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;if(!d||!sub)return;if(p===1||p===2&&sub!=='Português'){alert(p===1?'O 1º bimestre está fechado.':'O 2º bimestre está fechado para esta matéria.');return}const badge=await askBadge();if(!badge){alert('O crachá do professor é obrigatório para fechar/salvar as notas.');return}window.__teacherBadge=badge;document.querySelectorAll('#gradeTable .gi:not(:disabled)').forEach(i=>{const s=d.students.find(x=>String(x.id)===String(i.dataset.id));if(!s)return;s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};s.grades[p][sub][i.dataset.k]=i.value===''?'':Number(i.value)});try{await window.save();render();window.toast?.('Notas salvas. Crachá do professor confirmado.')}catch(e){alert(e.message||'Falha ao salvar.')}} 
-  function install(){const p=document.getElementById('gradePeriod'),s=document.getElementById('gradeSubject');if(!p||!s||!D()?.students)return false;patch();if(window.renderGrades!==render)window.renderGrades=render;if(window.saveGrades!==saveGrades)window.saveGrades=saveGrades;if(!p.dataset.finalGradePolicy){p.dataset.finalGradePolicy='1';p.addEventListener('change',render)}if(!s.dataset.finalGradePolicy){s.dataset.finalGradePolicy='1';s.addEventListener('change',()=>setTimeout(render,0))}render();return true}
-  function watch(){if(install()){setTimeout(function(){if(window.renderGrades!==render||window.saveGrades!==saveGrades)install();watch()},500)}else setTimeout(watch,300)}
-  watch();
+  function patchPeriod(){
+    const p=document.getElementById('gradePeriod');
+    if(!p)return;
+    const current=p.value||'3';
+    const html='<option value="1">1º Bimestre — Fechado</option><option value="2">2º Bimestre — Aberto</option><option value="3">3º Bimestre — Aberto</option>';
+    if(p.innerHTML!==html){p.innerHTML=html}
+    if(['1','2','3'].includes(current))p.value=current;
+  }
+  function askBadge(){
+    return new Promise(resolve=>{
+      const old=document.getElementById('teacherBadgeModal');
+      if(old)old.remove();
+      const m=document.createElement('div');
+      m.id='teacherBadgeModal';
+      m.style='position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:20px;z-index:99999';
+      m.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;width:min(430px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3)"><h3 style="margin:0 0 8px;color:#09284b">Crachá do professor</h3><p style="margin:0 0 14px;color:#64748b">Para fechar/salvar as notas, o crachá do professor é obrigatório. Se o crachá usar leitor, passe o crachá com o cursor neste campo.</p><input id="teacherBadgeInput" type="text" inputmode="numeric" autocomplete="off" autofocus placeholder="Leia ou digite o código do crachá" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:8px"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button id="teacherBadgeCancel" type="button" class="outline">Cancelar</button><button id="teacherBadgeOk" type="button" class="primary" style="width:auto">Confirmar e fechar notas</button></div></div>';
+      document.body.appendChild(m);
+      const input=m.querySelector('#teacherBadgeInput');
+      input.focus();
+      const finish=ok=>{
+        const badge=input.value.trim();
+        m.remove();
+        resolve(ok&&badge?badge:null);
+      };
+      m.querySelector('#teacherBadgeCancel').onclick=()=>finish(false);
+      m.querySelector('#teacherBadgeOk').onclick=()=>finish(true);
+      input.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();finish(true)}
+        if(e.key==='Escape')finish(false);
+      });
+    });
+  }
+  async function saveGradesWithBadge(){
+    const d=D();
+    const per=document.getElementById('gradePeriod');
+    const sub=document.getElementById('gradeSubject');
+    if(!d||!per||!sub)return;
+    const p=Number(per.value);
+    if(p===1){alert('O 1º bimestre está fechado.');return}
+    const badge=await askBadge();
+    if(!badge){alert('O crachá do professor é obrigatório para fechar/salvar as notas.');return}
+    const inputs=[...document.querySelectorAll('#gradeTable .gi:not(:disabled),#gradeTable .gradeInput:not(:disabled)')];
+    for(const i of inputs){
+      const max=Number(i.max)||10;
+      const raw=String(i.value??'').trim().replace(',','.');
+      if(raw==='')continue;
+      const n=Number(raw);
+      if(!Number.isFinite(n)||n<0||n>max){
+        i.focus();
+        alert('Nota inválida. Informe um valor entre 0 e '+max+'.');
+        return;
+      }
+    }
+    inputs.forEach(i=>{
+      const s=d.students.find(x=>String(x.id)===String(i.dataset.id));
+      if(!s)return;
+      s.grades??={};
+      s.grades[p]??={};
+      s.grades[p][sub.value]??={};
+      const raw=String(i.value??'').trim().replace(',','.');
+      s.grades[p][sub.value][i.dataset.k]=raw===''?'':Number(raw);
+    });
+    try{
+      await window.save();
+      window.__teacherBadge=badge;
+      window.toast?.('Notas salvas/fechadas com crachá do professor.');
+      // Atualiza apenas os valores calculados sem reconstruir a tabela durante a edição.
+      const table=document.getElementById('gradeTable');
+      if(table){
+        table.querySelectorAll('.gi,.gradeInput').forEach(i=>{
+          const s=d.students.find(x=>String(x.id)===String(i.dataset.id));
+          const g=s?.grades?.[p]?.[sub.value];
+          if(g&&g[i.dataset.k]!=null)i.value=String(g[i.dataset.k]);
+        });
+      }
+    }catch(e){
+      alert(e.message||'Falha ao salvar as notas.');
+    }
+  }
+  function install(){
+    if(!D()?.students)return false;
+    patchPeriod();
+    window.saveGrades=saveGradesWithBadge;
+    const p=document.getElementById('gradePeriod');
+    if(p&&!p.dataset.badgePolicyBound){
+      p.dataset.badgePolicyBound='1';
+      p.addEventListener('change',patchPeriod);
+    }
+    return true;
+  }
+  function boot(){
+    if(!install())setTimeout(boot,300);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+  window.addEventListener('load',()=>setTimeout(install,500));
 })();
