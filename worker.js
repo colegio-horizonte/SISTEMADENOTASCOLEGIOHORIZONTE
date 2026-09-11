@@ -17,56 +17,32 @@ if(url.pathname==='/api/users'){const u=await me(request,env);if(!u)return Respo
 return null}
 const GRADE_FIX=`(function(){
 (function(){
- let active=null;
- function avg(g){const v=['n1','n2','n3','n4'].map(k=>g&&g[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
- function table(){return document.getElementById('gradeTable')}
- function redrawMedia(){
-   const t=table(), p=Number(document.getElementById('gradePeriod')?.value||2), sub=document.getElementById('gradeSubject')?.value;
-   if(!t||!window.db||!sub)return;
-   t.querySelectorAll('tr').forEach(tr=>{const i=tr.querySelector('.gi');if(!i)return;const s=db.students.find(x=>String(x.id)===String(i.dataset.id));const g=s?.grades?.[p]?.[sub]||{};const m=avg(g);const cell=tr.querySelector('.grade-media');if(cell)cell.textContent=m==null?'—':m.toFixed(2);});
- }
- function guard(){
-   const t=table();if(!t||t.dataset.mediaGuard)return;
-   t.dataset.mediaGuard='1';
-   t.addEventListener('focusin',e=>{const i=e.target.closest('.gi,.gradeInput');if(i)active=i},true);
-   t.addEventListener('input',e=>{const i=e.target.closest('.gi,.gradeInput');if(!i)return;active=i;});
-   t.addEventListener('change',e=>{const i=e.target.closest('.gi,.gradeInput');if(!i)return;const s=db.students.find(x=>String(x.id)===String(i.dataset.id)),p=Number(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;if(!s||!sub)return;s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};const g=s.grades[p][sub],raw=String(i.value).trim().replace(',','.');g[i.dataset.k]=raw===''?'':Number(raw);g.media=avg(g);redrawMedia();});
-   new MutationObserver(()=>{if(active&&document.activeElement!==active){const i=table().querySelector('.gi[data-id="'+CSS.escape(active.dataset.id)+'"][data-k="'+CSS.escape(active.dataset.k)+'"]');if(i){i.value=active.value;i.focus();try{i.setSelectionRange(i.value.length,i.value.length)}catch(e){}}redrawMedia()}}).observe(t,{childList:true,subtree:true});
- }
+ function avg(g){const v=['n1','n2','n3','n4'].map(k=>g&&g[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);return v.length?v.reduce((a,b)=>a+b,0)/3:null}
  function install(){
-   const t=table();if(!t)return setTimeout(install,300);
-   guard();
-   if(!window.__originalSaveGrades&&typeof window.saveGrades==='function')window.__originalSaveGrades=window.saveGrades;
+   const t=document.getElementById('gradeTable'); if(!t||t.dataset.cleanFix)return;
+   t.dataset.cleanFix='1';
+   t.addEventListener('input',function(ev){
+     const i=ev.target.closest('.gi'); if(!i||!window.db)return;
+     const p=Number(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;
+     const st=db.students.find(x=>String(x.id)===String(i.dataset.id)); if(!st||!sub)return;
+     st.grades??={};st.grades[p]??={};st.grades[p][sub]??={};
+     const g=st.grades[p][sub],raw=String(i.value??'').replace(',','.');
+     g[i.dataset.k]=raw===''?'':Number(raw);g.media=avg(g);
+     const row=i.closest('tr'),cell=row?.querySelector('.grade-media');if(cell)cell.textContent=g.media==null?'—':g.media.toFixed(2);
+   },true);
    window.saveGrades=async function(){
-     const p=Number(document.getElementById('gradePeriod')?.value||3),sub=document.getElementById('gradeSubject')?.value;
+     const p=Number(document.getElementById('gradePeriod')?.value||2),sub=document.getElementById('gradeSubject')?.value;
      if(!sub)return;
-     if(p<2){alert('Esta unidade está fechada.');return}
-     const badge=prompt('Digite o código do crachá do professor para salvar/fechar as notas:');
-     if(badge!=='PROF2026'){alert('Crachá inválido.');return}
-     const d=window.__horizonte?.db||window.db;
-     if(!d||!Array.isArray(d.students)){alert('Dados dos alunos não carregados.');return}
      const inputs=[...document.querySelectorAll('#gradeTable .gi')];
-     for(const i of inputs){
-       const raw=String(i.value??'').trim().replace(',','.');
-       const max=Number(i.max)||10;
-       if(raw!==''&&(!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>max)){i.focus();alert('Nota inválida. Informe um valor entre 0 e '+max+'.');return}
-       const s=d.students.find(x=>String(x.id)===String(i.dataset.id));if(!s)continue;
-       s.grades??={};s.grades[p]??={};s.grades[p][sub]??={};
-       s.grades[p][sub][i.dataset.k]=raw===''?'':Number(raw);
-     }
-     const gAvg=g=>{const v=['n1','n2','n3','n4'].map(k=>g?.[k]).filter(v=>v!==''&&v!=null&&!Number.isNaN(Number(v))).map(Number);return v.length?v.reduce((a,b)=>a+b,0)/3:null};
-     d.students.forEach(s=>{const g=s.grades?.[p]?.[sub];if(g)g.media=gAvg(g)});
+     inputs.forEach(i=>{const st=db.students.find(x=>String(x.id)===String(i.dataset.id));if(!st)return;st.grades??={};st.grades[p]??={};st.grades[p][sub]??={};const g=st.grades[p][sub],raw=String(i.value??'').trim().replace(',','.');g[i.dataset.k]=raw===''?'':Number(raw);g.media=avg(g);});
      try{
-       const r=await fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(d)});
-       if(!r.ok)throw Error((await r.json().catch(()=>({}))).error||'Falha ao salvar no banco online.');
-       localStorage.setItem('horizonte_state',JSON.stringify(d));
-       window.db=d;
-       const t=document.getElementById('gradeTable');if(t)t.dataset.mediaGuard='';if(t)t.dataset.horizonteSig='';
-       if(typeof window.renderGrades==='function')window.renderGrades();
-       window.toast?.('Notas e médias salvas com sucesso no banco online.');
-     }catch(e){alert(e.message||'Não foi possível salvar as notas.')}
-   };;
+       const r=await fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(db)});
+       if(!r.ok)throw Error('Não foi possível salvar as notas.');
+       localStorage.setItem('horizonte_state',JSON.stringify(db));
+       window.toast?.('Notas e médias salvas com sucesso!');
+     }catch(err){alert(err.message||'Erro ao salvar.')}
+   };
  }
- install();
+ const go=()=>{if(document.getElementById('gradeTable'))install();else setTimeout(go,250)};go();
 })();})()`
 export default {async fetch(request,env){const path=new URL(request.url).pathname;if(path.startsWith('/api/')){try{const r=await api(request,env);if(r)return r}catch(e){return Response.json({error:e.message||'Erro interno.'},{status:500})}}const res=await env.ASSETS.fetch(request);const ct=res.headers.get('content-type')||'';if(request.method==='GET'&&ct.includes('text/html'))return new HTMLRewriter().on('body',{element(e){e.append('<script src="/bootstrap.js?v=20260908s"></script><script>'+GRADE_FIX.replace(/<\/script>/g,'<\\/script>')+'</script>',{html:true})}}).transform(res);return res}};
